@@ -62,7 +62,8 @@
                         :extra-deps {poly/image-creator-x {:local/root "components/image-creator-x"}
                                      poly/system-x {:local/root "components/system-x"}}}
 
-            :test {:extra-paths ["components/change/test"
+            :test {:extra-paths ["components/antq/test"
+                                 "components/change/test"
                                  "components/clojure-test-test-runner/test"
                                  "components/command/test"
                                  "components/common/test"
