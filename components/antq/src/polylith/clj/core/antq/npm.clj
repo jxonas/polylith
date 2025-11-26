@@ -2,13 +2,21 @@
   (:require [clj-http.client :as http]
             [cheshire.core :as json]))
 
+(defn keyword->package-name
+  "Convert a keyword to an npm package name string, preserving scoped package names.
+   For example, :@mantine/core becomes '@mantine/core', and :lodash becomes 'lodash'."
+  [kw]
+  (if (keyword? kw)
+    (subs (str kw) 1)
+    (str kw)))
+
 (defn npm-registry-url [package-name]
   (str "https://registry.npmjs.org/" package-name))
 
 (defn get-latest-version [package-name]
   "Get the latest version of an npm package from the npm registry"
   (try
-    (let [pkg-name (if (keyword? package-name) (clojure.core/name package-name) (str package-name))
+    (let [pkg-name (keyword->package-name package-name)
           response (http/get (npm-registry-url pkg-name) {:accept :json})
           body (json/parse-string (:body response) true)
           latest-version (get-in body [:dist-tags :latest])]
@@ -22,10 +30,7 @@
 (defn npm-dependencies->latest-versions [npm-deps]
   "Convert npm dependencies to latest version information"
   (into {} (map (fn [[name]]
-                  (let [pkg-name (cond
-                                   (keyword? name) (clojure.core/name name)
-                                   (string? name) name
-                                   :else (str name))]
+                  (let [pkg-name (keyword->package-name name)]
                     (when-let [latest-version (get-latest-version name)]
                       [pkg-name latest-version])))
                 (filter npm-dep? npm-deps))))
